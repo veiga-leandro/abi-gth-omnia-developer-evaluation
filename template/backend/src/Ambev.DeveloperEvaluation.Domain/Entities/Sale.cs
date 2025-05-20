@@ -5,11 +5,10 @@
         public Guid Id { get; set; }
         public string Number { get; set; }
         public DateTime Date { get; set; }
-        public string CustomerName { get; set; }
         public string BranchName { get; set; }
 
-        public Guid UserId { get; set; }
-        public User User { get; set; }
+        public Guid CustomerId { get; set; }
+        public User Customer { get; set; }
 
         public decimal TotalAmount { get; set; }
         public bool IsCancelled { get; set; }
@@ -26,7 +25,6 @@
         /// </summary>
         /// <param name="number"></param>
         /// <param name="date"></param>
-        /// <param name="customerName"></param>
         /// <param name="branchName"></param>
         /// <param name="user"></param>
         /// <exception cref="ArgumentException"></exception>
@@ -34,13 +32,9 @@
         public Sale(
             string number,
             DateTime date,
-            string customerName,
             string branchName,
             User user)
         {
-            if (string.IsNullOrWhiteSpace(customerName))
-                throw new ArgumentException("Customer name is required", nameof(customerName));
-
             if (string.IsNullOrWhiteSpace(branchName))
                 throw new ArgumentException("Branch name is required", nameof(branchName));
 
@@ -50,10 +44,9 @@
             Id = Guid.NewGuid();
             Number = number;
             Date = date;
-            CustomerName = customerName;
             BranchName = branchName;
-            UserId = user.Id;
-            User = user;
+            CustomerId = user.Id;
+            Customer = user;
             TotalAmount = 0;
             IsCancelled = false;
             Items = new List<SaleItem>();

@@ -35,7 +35,7 @@ namespace Ambev.DeveloperEvaluation.ORM.Repositories
         {
             return await _context.Sales
                 .Include(s => s.Items)
-                .Include(s => s.User)
+                .Include(s => s.Customer)
                 .FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
         }
 

@@ -1,12 +1,10 @@
-﻿using Ambev.DeveloperEvaluation.Application.Users.CreateUser;
-using Ambev.DeveloperEvaluation.Common.Events;
+﻿using Ambev.DeveloperEvaluation.Common.Events;
 using Ambev.DeveloperEvaluation.Domain.Entities;
 using Ambev.DeveloperEvaluation.Domain.Events.Sales;
 using Ambev.DeveloperEvaluation.Domain.Repositories;
 using AutoMapper;
 using FluentValidation;
 using MediatR;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Ambev.DeveloperEvaluation.Application.Sales.CreateSale
 {
@@ -50,16 +48,17 @@ namespace Ambev.DeveloperEvaluation.Application.Sales.CreateSale
                 throw new ValidationException(validationResult.Errors);
 
             // 1. Get user by id
-            var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken);
+            var user = await _userRepository.GetByIdAsync(request.CustomerId, cancellationToken);
             if (user is null)
                 throw new DomainException("User not found");
+            if (user.Role != Domain.Enums.UserRole.Customer)
+                throw new DomainException("User is not customer");
 
             // 2. Create the sale
             var saleNumber = await GenerateSaleNumberAsync();
             var sale = new Sale(
                 saleNumber,
                 request.Date,
-                request.CustomerName,
                 request.BranchName,
                 user
             );
@@ -89,8 +88,7 @@ namespace Ambev.DeveloperEvaluation.Application.Sales.CreateSale
                 SaleId = sale.Id,
                 SaleNumber = sale.Number,
                 Date = sale.Date,
-                UserEmail = user.Email,
-                CustomerName = sale.CustomerName,
+                CustomerId = user.Id,
                 Items = sale.Items.Select(i => new SaleItemEventData
                 {
                     ProductName = i.ProductName,
