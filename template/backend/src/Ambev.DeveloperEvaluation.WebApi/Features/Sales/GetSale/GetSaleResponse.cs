@@ -1,8 +1,8 @@
-﻿using Ambev.DeveloperEvaluation.Application.Sales.SaleItem;
+﻿using Ambev.DeveloperEvaluation.WebApi.Features.Sales.CreateSale;
 
-namespace Ambev.DeveloperEvaluation.Application.Sales.CreateSale
+namespace Ambev.DeveloperEvaluation.WebApi.Features.Sales.GetSale
 {
-    public class CreateSaleResult
+    public class GetSaleResponse
     {
         /// <summary>
         /// Unique identifier of the sale
@@ -35,8 +35,13 @@ namespace Ambev.DeveloperEvaluation.Application.Sales.CreateSale
         public decimal TotalAmount { get; set; }
 
         /// <summary>
+        /// Flag indicating whether the sale has been cancelled
+        /// </summary>
+        public bool IsCancelled { get; set; }
+
+        /// <summary>
         /// List of items included in this sale
         /// </summary>
-        public List<SaleItemResult> Items { get; set; } = new List<SaleItemResult>();
+        public List<CreateSaleItemResponse> Items { get; set; } = new List<CreateSaleItemResponse>();
     }
 }

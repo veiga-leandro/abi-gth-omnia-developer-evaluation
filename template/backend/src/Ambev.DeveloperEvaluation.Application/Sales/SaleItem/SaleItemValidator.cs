@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace Ambev.DeveloperEvaluation.Application.Sales.CreateSale
+namespace Ambev.DeveloperEvaluation.Application.Sales.SaleItem
 {
     public class SaleItemValidator : AbstractValidator<SaleItemDto>
     {

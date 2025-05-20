@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using Ambev.DeveloperEvaluation.Application.Sales.SaleItem;
+using FluentValidation;
 
 namespace Ambev.DeveloperEvaluation.Application.Sales.CreateSale
 {

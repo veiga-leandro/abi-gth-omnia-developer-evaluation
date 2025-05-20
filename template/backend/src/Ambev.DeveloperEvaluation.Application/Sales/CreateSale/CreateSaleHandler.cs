@@ -66,7 +66,7 @@ namespace Ambev.DeveloperEvaluation.Application.Sales.CreateSale
             // 3. Add items to the sale
             foreach (var itemDto in request.Items)
             {
-                var saleItem = new SaleItem(
+                var saleItem = new Domain.Entities.SaleItem(
                     sale.Id,
                     itemDto.ProductName,
                     itemDto.Quantity,

@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using Ambev.DeveloperEvaluation.Application.Sales.SaleItem;
+using MediatR;
 
 namespace Ambev.DeveloperEvaluation.Application.Sales.CreateSale
 {

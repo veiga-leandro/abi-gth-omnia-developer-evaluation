@@ -1,8 +1,6 @@
-﻿using Ambev.DeveloperEvaluation.Application.Sales.SaleItem;
-
-namespace Ambev.DeveloperEvaluation.Application.Sales.CreateSale
+﻿namespace Ambev.DeveloperEvaluation.Application.Sales.ListSales
 {
-    public class CreateSaleResult
+    public class ListSalesResult
     {
         /// <summary>
         /// Unique identifier of the sale
@@ -35,8 +33,8 @@ namespace Ambev.DeveloperEvaluation.Application.Sales.CreateSale
         public decimal TotalAmount { get; set; }
 
         /// <summary>
-        /// List of items included in this sale
+        /// Flag indicating whether the sale has been cancelled
         /// </summary>
-        public List<SaleItemResult> Items { get; set; } = new List<SaleItemResult>();
+        public bool IsCancelled { get; set; }
     }
 }

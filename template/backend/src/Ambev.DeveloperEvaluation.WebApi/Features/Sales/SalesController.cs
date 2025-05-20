@@ -1,10 +1,15 @@
 ﻿using Ambev.DeveloperEvaluation.Application.Sales.CreateSale;
+using Ambev.DeveloperEvaluation.Application.Sales.GetSale;
+using Ambev.DeveloperEvaluation.Application.Sales.ListSales;
 using Ambev.DeveloperEvaluation.WebApi.Common;
 using Ambev.DeveloperEvaluation.WebApi.Features.Sales.CreateSale;
+using Ambev.DeveloperEvaluation.WebApi.Features.Sales.GetSale;
+using Ambev.DeveloperEvaluation.WebApi.Features.Sales.ListSales;
 using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ListSalesValidator = Ambev.DeveloperEvaluation.WebApi.Features.Sales.ListSales.ListSalesValidator;
 
 namespace Ambev.DeveloperEvaluation.WebApi.Features.Sales
 {
@@ -43,19 +48,66 @@ namespace Ambev.DeveloperEvaluation.WebApi.Features.Sales
         {
             var validator = new CreateSaleRequestValidator();
             var validationResult = await validator.ValidateAsync(request, cancellationToken);
+            if (!validationResult.IsValid)
+                return BadRequest(validationResult.Errors);
 
             var command = _mapper.Map<CreateSaleCommand>(request);
             command.CustomerId = GetCurrentUserId();
 
             var result = await _mediator.Send(command);
-            var response = _mapper.Map<CreateSaleResponse>(result);
+            return Ok(_mapper.Map<CreateSaleResponse>(result));
+        }
 
-            return Ok(new ApiResponseWithData<CreateSaleResponse>
-            {
-                Success = true,
-                Message = "Sale created successfully",
-                Data = _mapper.Map<CreateSaleResponse>(response)
-            });
+        /// <summary>
+        /// Retrieves a Sale by ID
+        /// </summary>
+        /// <param name="id">The unique identifier of the Sale</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>The Sale details if found</returns>
+        [HttpGet("{id}")]
+        [ProducesResponseType(typeof(ApiResponseWithData<GetSaleResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Get(Guid id, CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(new GetSaleCommand(id), cancellationToken);
+
+            if (result == null)
+                return NotFound(new ApiResponse
+                {
+                    Success = false,
+                    Message = "Sale not found"
+                });
+
+            return Ok(_mapper.Map<GetSaleResponse>(result));
+        }
+
+        /// <summary>
+        /// Retrieves a list of sales with optional filtering parameters
+        /// </summary>
+        /// <param name="request">Query parameters for filtering sales</param>
+        /// <returns>A list of sales matching the criteria</returns>
+        /// <response code="200">Returns the list of sales</response>
+        /// <response code="401">Unauthorized. Please login to access this resource</response>
+        /// <response code="403">Forbidden. You don't have permission to access this resource</response>
+        [HttpGet]
+        [ProducesResponseType(typeof(ApiResponseWithData<PaginatedList<ListSalesResponse>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> List([FromQuery] ListSalesRequest request, CancellationToken cancellationToken)
+        {
+            var validator = new ListSalesValidator();
+            var validationResult = await validator.ValidateAsync(request, cancellationToken);
+            if (!validationResult.IsValid)
+                return BadRequest(validationResult.Errors);
+
+            var command = _mapper.Map<ListSalesCommand>(request);
+            var result = await _mediator.Send(command, cancellationToken);
+            return OkPaginated<ListSalesResponse>(_mapper.Map<PaginatedList<ListSalesResponse>>(result));
         }
     }
 }
