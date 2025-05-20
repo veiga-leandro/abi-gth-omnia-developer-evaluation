@@ -5,6 +5,7 @@ using Ambev.DeveloperEvaluation.Common.Security;
 using Ambev.DeveloperEvaluation.Common.Validation;
 using Ambev.DeveloperEvaluation.IoC;
 using Ambev.DeveloperEvaluation.ORM;
+using Ambev.DeveloperEvaluation.ORM.Seeds;
 using Ambev.DeveloperEvaluation.WebApi.Filters;
 using Ambev.DeveloperEvaluation.WebApi.Middleware;
 using MediatR;
@@ -17,7 +18,7 @@ namespace Ambev.DeveloperEvaluation.WebApi;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         try
         {
@@ -85,6 +86,7 @@ public class Program
 
             var app = builder.Build();
             app.UseMiddleware<ValidationExceptionMiddleware>();
+            app.UseMiddleware<AuthExceptionMiddleware>();
 
             if (app.Environment.IsDevelopment())
             {
@@ -109,6 +111,8 @@ public class Program
                 {
                     var context = services.GetRequiredService<DefaultContext>();
                     context.Database.Migrate();
+
+                    await SeedData.Initialize(services);
 
                     app.Logger.LogInformation("Database migrated successfully");
                 }

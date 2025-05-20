@@ -16,7 +16,7 @@ namespace Ambev.DeveloperEvaluation.WebApi.Features.Users;
 /// Controller for managing user operations
 /// </summary>
 [ApiController]
-[Authorize]
+[Authorize(Roles = "Admin,Manager")]
 [Route("api/[controller]")]
 public class UsersController : BaseController
 {
@@ -41,7 +41,6 @@ public class UsersController : BaseController
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The created user details</returns>
     [HttpPost]
-    [AllowAnonymous]
     [ProducesResponseType(typeof(ApiResponseWithData<CreateUserResponse>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request, CancellationToken cancellationToken)

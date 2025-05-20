@@ -9,8 +9,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace Ambev.DeveloperEvaluation.WebApi.Features.Sales
 {
     [ApiController]
-    [Authorize]
+    [Authorize(Roles = "Admin,Manager,Customer")]
     [Route("api/[controller]")]
+    [Produces("application/json")]
     public class SalesController : BaseController
     {
         private readonly IMediator _mediator;
@@ -34,6 +35,7 @@ namespace Ambev.DeveloperEvaluation.WebApi.Features.Sales
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns></returns>
         [HttpPost]
+        [Authorize(Roles = "Customer")]
         [ProducesResponseType(typeof(ApiResponseWithData<CreateSaleResponse>), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
@@ -43,7 +45,7 @@ namespace Ambev.DeveloperEvaluation.WebApi.Features.Sales
             var validationResult = await validator.ValidateAsync(request, cancellationToken);
 
             var command = _mapper.Map<CreateSaleCommand>(request);
-            command.UserId = GetCurrentUserId();
+            command.CustomerId = GetCurrentUserId();
 
             var result = await _mediator.Send(command);
             var response = _mapper.Map<CreateSaleResponse>(result);
