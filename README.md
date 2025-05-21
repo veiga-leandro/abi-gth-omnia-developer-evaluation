@@ -1,86 +1,183 @@
-# Developer Evaluation Project
+# Developer Store API
 
-`READ CAREFULLY`
+A .NET 8 based REST API for managing sales records with comprehensive CRUD operations and business rules implementation.
 
-## Instructions
-**The test below will have up to 7 calendar days to be delivered from the date of receipt of this manual.**
+## Table of Contents
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Getting Started](#getting-started)
+- [API Documentation](#api-documentation)
+- [Business Rules](#business-rules)
+- [Database Schema](#database-schema)
 
-- The code must be versioned in a public Github repository and a link must be sent for evaluation once completed
-- Upload this template to your repository and start working from it
-- Read the instructions carefully and make sure all requirements are being addressed
-- The repository must provide instructions on how to configure, execute and test the project
-- Documentation and overall organization will also be taken into consideration
+## Features
 
-## Use Case
-**You are a developer on the DeveloperStore team. Now we need to implement the API prototypes.**
+- Complete CRUD operations for sales management
+- Automatic discount calculations based on quantity
+- Role-based access control
+- Event publishing system for sales operations
+- Docker containerization support
+- PostgreSQL database integration
 
-As we work with `DDD`, to reference entities from other domains, we use the `External Identities` pattern with denormalization of entity descriptions.
+## Prerequisites
 
-Therefore, you will write an API (complete CRUD) that handles sales records. The API needs to be able to inform:
+- Docker and Docker Compose
+- .NET 8.0 SDK (for local development)
+- Visual Studio 2022 or VS Code (optional)
 
-* Sale number
-* Date when the sale was made
-* Customer
-* Total sale amount
-* Branch where the sale was made
-* Products
-* Quantities
-* Unit prices
-* Discounts
-* Total amount for each item
-* Cancelled/Not Cancelled
+## Getting Started
 
-It's not mandatory, but it would be a differential to build code for publishing events of:
-* SaleCreated
-* SaleModified
-* SaleCancelled
-* ItemCancelled
+1. Clone the repository:
 
-If you write the code, **it's not required** to actually publish to any Message Broker. You can log a message in the application log or however you find most convenient.
+```bash
+git clone <repository-url>
+```
 
-### Business Rules
+2. Navigate to the project directory and run:
 
-* Purchases above 4 identical items have a 10% discount
-* Purchases between 10 and 20 identical items have a 20% discount
-* It's not possible to sell above 20 identical items
-* Purchases below 4 items cannot have a discount
+```bash
+docker-compose up -d
+```
 
-These business rules define quantity-based discounting tiers and limitations:
+The application will be available at:
+- HTTP: http://localhost:8080
+- HTTPS: https://localhost:8081
 
-1. Discount Tiers:
-   - 4+ items: 10% discount
-   - 10-20 items: 20% discount
+## API Documentation
 
-2. Restrictions:
-   - Maximum limit: 20 items per product
-   - No discounts allowed for quantities below 4 items
+### Authentication
+All endpoints require authentication. The API supports role-based access with the following roles:
+- Admin
+- Manager
+- Customer
 
-## Overview
-This section provides a high-level overview of the project and the various skills and competencies it aims to assess for developer candidates. 
+#### Initial Admin User
+The system is seeded with an initial administrator account:
+- **Username**: admin
+- **Password**: Admin@123
 
-See [Overview](/.doc/overview.md)
+#### Getting Started with Authentication
 
-## Tech Stack
-This section lists the key technologies used in the project, including the backend, testing, frontend, and database components. 
+1. Obtain JWT Token
 
-See [Tech Stack](/.doc/tech-stack.md)
+POST /api/Auth Content-Type: application/json
+```json
+{ "username": "admin", "password": "Admin@123" }
+```
 
-## Frameworks
-This section outlines the frameworks and libraries that are leveraged in the project to enhance development productivity and maintainability. 
+Response:
+```json
+{ "success": true, "message": "User authenticated successfully", "data": { "token": "eyJhbG...[JWT token]", "expiresIn": 3600 } }
+```
 
-See [Frameworks](/.doc/frameworks.md)
+2. Use the Token
+Add the JWT token to all subsequent requests in the Authorization header:
 
-<!-- 
-## API Structure
-This section includes links to the detailed documentation for the different API resources:
-- [API General](./docs/general-api.md)
-- [Products API](/.doc/products-api.md)
-- [Carts API](/.doc/carts-api.md)
-- [Users API](/.doc/users-api.md)
-- [Auth API](/.doc/auth-api.md)
--->
+`Authorization: Bearer eyJhbG...[JWT token]`
 
-## Project Structure
-This section describes the overall structure and organization of the project files and directories. 
+#### Making Authenticated Requests
+Example of creating a sale with authentication:
 
-See [Project Structure](/.doc/project-structure.md)
+```bash
+curl -X POST http://localhost:8080/api/Sales 
+-H "Authorization: Bearer eyJhbG...[JWT token]" 
+-H "Content-Type: application/json" 
+-d '{ "branchId": "guid", "items": [ { "productId": "guid", "quantity": 5, "unitPrice": 10.00 } ] }'
+```
+
+### Endpoints
+
+#### 1. Create Sale
+
+POST /api/Sales
+
+- **Authorization**: Customer role required
+- **Request Body**:
+
+```json 
+{ "branchId": "guid", "items": [ { "productId": "guid", "quantity": 5, "unitPrice": 10.00 } ] }
+```
+
+- **Response**: `201 Created`
+
+#### 2. Get Sale by ID
+GET /api/Sales/{id}
+- **Authorization**: Admin, Manager, or Customer role required
+- **Response**: `200 OK`
+
+```json
+{ "id": "guid", "saleNumber": "string", "date": "datetime", "customerId": "guid", "branchId": "guid", "totalAmount": 50.00, "items": [ { "id": "guid", "productId": "guid", "quantity": 5, "unitPrice": 10.00, "discount": 5.00, "totalAmount": 45.00 } ], "cancelled": false }
+```
+
+
+#### 3. List Sales
+GET /api/Sales
+- **Authorization**: Admin, Manager, or Customer role required
+- **Query Parameters**:
+  - `page`: Page number (default: 1)
+  - `pageSize`: Items per page (default: 10)
+  - `startDate`: Filter by start date
+  - `endDate`: Filter by end date
+  - `customerId`: Filter by customer
+  - `branchId`: Filter by branch
+
+#### 4. Update Sale
+PUT /api/Sales/{id}
+- **Authorization**: Admin, Manager, or Customer role required
+- **Request Body**: Similar to Create Sale
+
+#### 5. Cancel Sale
+DELETE /api/Sales/{id}
+- **Authorization**: Admin, Manager, or Customer role required
+- **Response**: `204 No Content`
+
+#### 6. Cancel Sale Item
+DELETE /api/Sales/{saleId}/items/{itemId}
+- **Authorization**: Admin, Manager, or Customer role required
+- **Response**: `204 No Content`
+
+## Business Rules
+
+### Quantity-Based Discounts
+1. 4+ identical items: 10% discount
+2. 10-20 identical items: 20% discount
+3. Maximum limit: 20 items per product
+4. No discounts for quantities below 4 items
+
+### Event Publishing
+The system publishes the following events (logged to application log):
+- SaleCreated
+- SaleModified
+- SaleCancelled
+- ItemCancelled
+
+## Database Schema
+
+The application uses PostgreSQL with the following connection details:
+- Host: localhost
+- Port: 5432
+- Database: developer_evaluation
+- Username: developer
+- Password: ev@luAt10n
+
+## Error Handling
+
+The API uses standard HTTP status codes:
+- 200: Success
+- 201: Created
+- 204: No Content
+- 400: Bad Request
+- 401: Unauthorized
+- 403: Forbidden
+- 404: Not Found
+- 500: Internal Server Error
+
+All error responses follow a standard format:
+```json
+{ "success": false, "message": "Error description", "errors": ["Detailed error messages"] }
+```
+
+
+## Template README
+
+See [Template README](template-README.md)
