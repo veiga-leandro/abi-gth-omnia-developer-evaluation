@@ -43,7 +43,6 @@
             if (unitPrice <= 0)
                 throw new ArgumentException("Unit price must be greater than zero", nameof(unitPrice));
 
-            Id = Guid.NewGuid();
             SaleId = saleId;
             ProductName = productName;
             Quantity = quantity;

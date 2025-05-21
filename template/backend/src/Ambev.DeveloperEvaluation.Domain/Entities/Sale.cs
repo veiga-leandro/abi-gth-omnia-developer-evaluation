@@ -61,9 +61,9 @@
             RecalculateTotalAmount();
         }
 
-        private void RecalculateTotalAmount()
+        public void RecalculateTotalAmount()
         {
-            TotalAmount = Items.Sum(i => i.TotalAmount);
+            TotalAmount = Items.Where(i => !i.IsCancelled).Sum(i => i.TotalAmount);
         }
 
         public void Cancel()
