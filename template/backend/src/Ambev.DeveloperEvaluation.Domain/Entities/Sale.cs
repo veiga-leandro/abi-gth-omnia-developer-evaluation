@@ -12,6 +12,7 @@
 
         public decimal TotalAmount { get; set; }
         public bool IsCancelled { get; set; }
+        public DateTime? CancellationDate { get; set; }
 
         public ICollection<SaleItem> Items { get; set; } = new List<SaleItem>();
 

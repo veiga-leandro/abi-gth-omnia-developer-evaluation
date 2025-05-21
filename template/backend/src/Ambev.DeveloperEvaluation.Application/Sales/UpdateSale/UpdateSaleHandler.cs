@@ -70,7 +70,7 @@ namespace Ambev.DeveloperEvaluation.Application.Sales.UpdateSale
             await _saleRepository.UpdateAsync(sale, cancellationToken);
 
             // 5. Publish event
-            await _eventPublisher.PublishAsync(new SaleCreatedEvent
+            await _eventPublisher.PublishAsync(new SaleModifiedEvent
             {
                 SaleId = sale.Id,
                 SaleNumber = sale.Number,

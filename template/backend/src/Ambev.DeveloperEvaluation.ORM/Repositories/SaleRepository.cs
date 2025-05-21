@@ -21,6 +21,9 @@ namespace Ambev.DeveloperEvaluation.ORM.Repositories
         /// <returns>The created sale</returns>
         public async Task<Sale> CreateAsync(Sale sale, CancellationToken cancellationToken = default)
         {
+            foreach (var item in sale.Items.ToList())
+                item.Id = Guid.NewGuid();
+
             await _context.Sales.AddAsync(sale, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
             return sale;
@@ -104,6 +107,23 @@ namespace Ambev.DeveloperEvaluation.ORM.Repositories
         public async Task UpdateAsync(Sale sale, CancellationToken cancellationToken = default)
         {
             _context.Entry(sale).State = EntityState.Modified;
+
+            // For each item, determine its state
+            foreach (var item in sale.Items.ToList())
+            {
+                _context.Entry(item).State = EntityState.Detached;
+
+                if (item.Id == Guid.Empty || item.Id == default)
+                {
+                    item.Id = Guid.NewGuid();
+                    _context.Entry(item).State = EntityState.Added;
+                }
+                else
+                {
+                    _context.Entry(item).State = EntityState.Modified;
+                }
+            }
+
             await _context.SaveChangesAsync(cancellationToken);
         }
 

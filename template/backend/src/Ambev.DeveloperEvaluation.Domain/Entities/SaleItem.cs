@@ -10,6 +10,7 @@
         public decimal Discount { get; set; }
         public decimal TotalAmount { get; set; }
         public bool IsCancelled { get; set; }
+        public DateTime? CancellationDate { get; set; }
 
         /// <summary>
         /// Private constructor for EF
