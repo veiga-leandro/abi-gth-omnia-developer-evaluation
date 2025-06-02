@@ -1,6 +1,8 @@
+using Ambev.DeveloperEvaluation.Domain.Entities;
 using Ambev.DeveloperEvaluation.Domain.Enums;
 using Ambev.DeveloperEvaluation.Domain.Validation;
 using Ambev.DeveloperEvaluation.Unit.Domain.Entities.TestData;
+using FluentAssertions;
 using FluentValidation.TestHelper;
 using Xunit;
 
@@ -202,5 +204,41 @@ public class UserValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Role);
+    }
+
+    [Theory(DisplayName = "Validation should return specific error messages")]
+    [InlineData("", "Username must be at least 3 characters long.")]
+    [InlineData("a", "Username must be at least 3 characters long.")]
+    [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "Username cannot be longer than 50 characters.")]
+    public void Given_InvalidUserData_When_Validated_Then_ShouldReturnSpecificError(string username, string expectedError)
+    {
+        // Arrange
+        var user = new User { Username = username };
+
+        // Act
+        var result = _validator.TestValidate(user);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.Username)
+              .WithErrorMessage(expectedError);
+    }
+
+    [Fact(DisplayName = "Multiple validation errors should be returned")]
+    public void Given_MultipleInvalidFields_When_Validated_Then_ShouldReturnMultipleErrors()
+    {
+        // Arrange
+        var user = new User
+        {
+            Username = "",
+            Email = "invalid-email",
+            Phone = "123"
+        };
+
+        // Act
+        var result = _validator.TestValidate(user);
+
+        // Assert
+        result.ShouldHaveAnyValidationError();
+        result.Errors.Should().HaveCountGreaterThan(1);
     }
 }

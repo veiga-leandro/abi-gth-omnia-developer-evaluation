@@ -1,6 +1,7 @@
 using Ambev.DeveloperEvaluation.Domain.Entities;
 using Ambev.DeveloperEvaluation.Domain.Enums;
 using Ambev.DeveloperEvaluation.Unit.Domain.Entities.TestData;
+using FluentAssertions;
 using Xunit;
 
 namespace Ambev.DeveloperEvaluation.Unit.Domain.Entities;
@@ -85,5 +86,48 @@ public class UserTests
         // Assert
         Assert.False(result.IsValid);
         Assert.NotEmpty(result.Errors);
+    }
+
+    /// <summary>
+    /// Tests that when an active user is deactivate, their status changes to Deactivated.
+    /// </summary>
+    [Fact(DisplayName = "User can be deactivated from active state")]
+    public void Given_ActiveUser_When_Deactivated_Then_StatusShouldBeInactive()
+    {
+        // Arrange
+        var user = new User { Status = UserStatus.Active };
+
+        // Act
+        user.Deactivate();
+
+        // Assert
+        Assert.Equal(UserStatus.Inactive, user.Status);
+    }
+
+    [Theory(DisplayName = "User state transitions should be valid")]
+    [InlineData(UserStatus.Active, UserStatus.Inactive)]     // Active -> Deactivate
+    [InlineData(UserStatus.Inactive, UserStatus.Active)]     // Inactive -> Activate
+    [InlineData(UserStatus.Suspended, UserStatus.Active)]    // Suspended -> Activate
+    public void Given_UserInState_When_StateChanged_Then_NewStateShouldBeValid(UserStatus initialState, UserStatus expectedState)
+    {
+        // Arrange
+        var user = new User { Status = initialState };
+
+        // Act
+        switch (expectedState)
+        {
+            case UserStatus.Active:
+                user.Activate();
+                break;
+            case UserStatus.Inactive:
+                user.Deactivate();
+                break;
+            case UserStatus.Suspended:
+                user.Suspend();
+                break;
+        }
+
+        // Assert
+        Assert.Equal(expectedState, user.Status);
     }
 }

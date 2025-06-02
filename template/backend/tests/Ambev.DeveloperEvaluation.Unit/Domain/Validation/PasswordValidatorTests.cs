@@ -133,4 +133,24 @@ public class PasswordValidatorTests
         result.ShouldHaveValidationErrorFor(x => x)
             .WithErrorMessage("Password must contain at least one special character.");
     }
+
+
+    [Theory(DisplayName = "Password should meet complexity requirements")]
+    [InlineData("Abcd123!", true)]             // Valid password
+    [InlineData("abcd123!", false)]            // Missing uppercase
+    [InlineData("ABCD123!", false)]            // Missing lowercase
+    [InlineData("Abcdefgh!", false)]           // Missing number
+    [InlineData("Abc12345", false)]            // Missing special character
+    [InlineData("Ab1!", false)]                // Too short
+    public void Given_Password_When_Validated_Then_ShouldValidateComplexity(string password, bool shouldBeValid)
+    {
+        // Act
+        var result = _validator.TestValidate(password);
+
+        // Assert
+        if (shouldBeValid)
+            result.ShouldNotHaveAnyValidationErrors();
+        else
+            result.ShouldHaveAnyValidationError();
+    }
 }
