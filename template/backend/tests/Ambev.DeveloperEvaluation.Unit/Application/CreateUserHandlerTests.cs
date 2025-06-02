@@ -6,6 +6,7 @@ using Ambev.DeveloperEvaluation.Unit.Domain;
 using AutoMapper;
 using FluentAssertions;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Xunit;
 
 namespace Ambev.DeveloperEvaluation.Unit.Application;
@@ -159,5 +160,48 @@ public class CreateUserHandlerTests
             c.Phone == command.Phone &&
             c.Status == command.Status &&
             c.Role == command.Role));
+    }
+
+    [Fact(DisplayName = "Should handle repository exception gracefully")]
+    public async Task Handle_WhenRepositoryFails_ShouldThrowMeaningfulException()
+    {
+        // Arrange
+        var command = CreateUserHandlerTestData.GenerateValidCommand();
+        var user = new User
+        {
+            Id = Guid.NewGuid(),
+            Username = command.Username,
+            Password = command.Password,
+            Email = command.Email,
+            Phone = command.Phone,
+            Status = command.Status,
+            Role = command.Role
+        };
+
+        _mapper.Map<User>(command).Returns(user);
+        _userRepository.CreateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync(new Exception("Database error"));
+
+        // Act
+        var act = () => _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<Exception>()
+            .WithMessage("Database error");
+    }
+
+    [Fact(DisplayName = "Should handle null mapper result")]
+    public async Task Handle_WhenMapperReturnsNull_ShouldThrowException()
+    {
+        // Arrange
+        var command = CreateUserHandlerTestData.GenerateValidCommand();
+        _mapper.Map<User>(Arg.Any<CreateUserCommand>()).Returns((User)null!);
+
+        // Act
+        var act = () => _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("Failed to map user data");
     }
 }
