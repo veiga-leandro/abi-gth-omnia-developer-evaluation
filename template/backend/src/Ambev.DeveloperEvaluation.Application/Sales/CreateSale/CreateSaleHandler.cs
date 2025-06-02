@@ -80,7 +80,7 @@ namespace Ambev.DeveloperEvaluation.Application.Sales.CreateSale
             }
 
             // 4. Save to database
-            await _saleRepository.CreateAsync(sale, cancellationToken);
+            sale = await _saleRepository.CreateAsync(sale, cancellationToken);
 
             // 5. Publish event
             await _eventPublisher.PublishAsync(new SaleCreatedEvent
